@@ -1,0 +1,16 @@
+public class Program {
+	...
+	PlannerBase planner = new Planner(new Algorithm(params));
+	...
+		planner.SetRecipes(recipes);
+	...
+	void GeneratePlanEventHandler() {
+		planner.Generate(config);
+	}
+	...
+	Schedule ShowDayMenu(int day) {
+		var plan = planner.GetPlan();
+		return plan.GetDayMenu(day);
+	}
+	...
+}

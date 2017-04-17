@@ -1,0 +1,203 @@
+// There is no implementation of the class Product. Because this isn't a necessary for understanding of work.
+
+public class Program {
+	...
+	PlannerBase planner = new Planner(new Algorithm(params));
+	...
+		planner.SetRecipes(recipes);
+	...
+	// Triggered by Button("Generate Menu")
+	void GeneratePlanEventHandler() {
+		planner.Generate(config);
+	}
+	...
+	// Triggered by Button("Show Day's menu") 
+	// Could be called from other methods
+	Schedule ShowDayMenu(int day) {
+		var plan = planner.GetPlan();
+		return plan.GetDayMenu(day);
+	}
+	...
+}
+
+/* 
+ *	Abstract class for All planners. 
+ */
+public abstract class PlannerBase {
+	protected Plan plan;
+	protected Generator algorithm;
+
+	abstract void Generate(PlanConfiguration config);
+	abstract void SetAlgorithm(a: Generator);
+	abstract void SetRecipes(List<Recipe> recipes);
+
+	public Plan GetPlan() {
+		return plan;
+	}
+}
+
+/*
+ *	Concrete realization of Planner
+ */ 
+public class Planner extends PlannerBase {
+	public Planner(Generator algorithm) {
+		this.plan = new Plan();
+		this.algorithm = algorithm;
+	}
+
+	@override
+	public void Generate(PlanConfiguration config) {
+		for (int i = 0; i < 7; i++) {
+			var schedule = algorithm.Generate(config)
+			this.plan.SetDaySchedule(schedule, i);
+		}
+	}
+
+	@override
+	public void SetAlgorithm(a: Generator) {
+		if (a != null)
+			this.algorithm = a;
+	}
+
+	@override
+	public void SetRecipes(List<Recipe> recipes) {
+		this.algorithm.SetRecipes(recipes);
+	}
+
+}
+
+/*
+ *	Base class for all algorithms of choosing menu plans.
+ */
+public abstract class Generator {
+	protected List<Recipe> allRecipes; 
+	protected List<Object> params; 
+	abstract Schedule Generate(PlanConfiguration config);
+	abstract void SetRecipes(List<Recipe> recipes);
+	abstract void SetParams(List<Object> params);
+}
+
+/*
+ *	Concrete realization of choosing algorithm
+ */ 
+public class Algorithm extends Generator {
+
+	/*
+	 * There should be some parameters which characterizes the algorithm
+	 */
+	public Algorithm(List<Object> params) {
+		this.params = params;
+	}
+
+	@override
+	public void SetParams(List<Object> params) {
+		this.params = params;
+	}
+
+	@override
+	public void SetRecipes(List<Recipe> recipes) {
+		this.allRecipes = recipes;
+	}
+
+	@override
+	public Schedule Generate(PlanConfiguration config) {
+		Recipe[] recipes = new Recipe[3];
+		for (int i = 0; i < 3; i++) {
+			for (Recipe r : allRecipes) {
+				if (CheckSatisfying(config, r, i))
+					recipes[i] = r;
+			}
+		}
+		return new Schedule(recipes[0], recipes[1], recipes[2]);
+	}
+
+	/*
+	 * Type: 0 - breakfast
+	 *		1 - lunch
+	 *		2 - dinner
+	 */
+	public Boolean CheckSatisfying(PlanConfiguration config, Recipe recipe, int type) {
+		// TODO magic for validation recipes
+	} 
+}
+
+
+public class Plan {
+	Plan() {
+		this.schedules = new Schedule[7];
+	}
+	public void SetDaySchedule(Schedule schedule, int n) {
+		schedules[n] = schedule;
+	}
+	public Schedule GetDayMenu(int day) {
+		return schedules[day];
+	}
+	Schedule[] schedules;
+}
+
+
+public class PlanConfiguration {
+	List<Product> inappropriateProducts;
+	int calories;
+	int cookingTime;
+}
+
+
+public class Schedule {
+	Recipe lunch;
+	Recipe dinner;
+	Recipe breakfast;
+
+	public Schedule(Recipe breakfast, Recipe lunch, Recipe dinner) {
+		this.breakfast = breakfast;
+		this.lunch = lunch;
+		this.dinner = dinner;
+	}
+
+	// Returns a tuple of values (C# 7.0 feature in pseudo-code)
+	public (int cal, int protein, int fat, int carbs) GetSummary() {
+		int protein = lunch.GetProtein() + dinner.GetProtein()  + breakfast.GetProtein();
+		int cal = lunch.GetCalories() + dinner.GetCalories()  + breakfast.GetCalories();
+		int fat = lunch.GetFat() + dinner.GetFat()  + breakfast.GetFat();
+		int carbs = lunch.GetCarbs() + dinner.GetCarbs()  + breakfast.GetCarbs();
+		return (cal, protein, fat, carbs);
+	}
+}
+
+
+public class Recipe {
+	Recipe(String description, List<Product> products, DeltaTime cTime) {
+		this.description = description;
+		this.products = products;
+		this.cookingTime = cTime;
+	}
+
+	List<Product> products;
+	String description;
+	DeltaTime cookingTime;
+
+	// LINQ. This is also C# feature.
+	int GetCalories() {
+		sum = 0;
+		products.foreach(v => sum += v.calories);
+		return sum;
+	}
+
+	int GetProtein() {
+		sum = 0;
+		products.foreach(v => sum += v.protein);
+		return sum;
+	}
+
+	int GetFat() {
+		sum = 0;
+		products.foreach(v => sum += v.fat);
+		return sum;
+	}
+	
+	int GetCarbs() {
+		sum = 0;
+		products.foreach(v => sum += v.carbs);
+		return sum;
+	}
+}
